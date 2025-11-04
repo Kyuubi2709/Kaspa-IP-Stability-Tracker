@@ -6,13 +6,14 @@
 <style>
 body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
 h1 { text-align: center; color: #333; }
-.dashboard { display: flex; justify-content: space-around; margin: 20px 0; }
-.card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); width: 250px; text-align: center; }
+.dashboard { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; }
+.card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); width: 250px; text-align: center; margin: 10px; }
 .card h2 { margin: 0; font-size: 2em; color: #007BFF; }
 .card p { margin: 5px 0 0; font-size: 1em; color: #555; }
-#chart-container { max-width: 800px; margin: 40px auto; }
-button { background-color: #007BFF; color: white; border: none; border-radius: 5px; }
+#chart-container { max-width: 800px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+button { background-color: #007BFF; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 1em; cursor: pointer; }
 button:hover { background-color: #0056b3; }
+#fetch-status { margin-top: 10px; font-weight: bold; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -35,8 +36,8 @@ button:hover { background-color: #0056b3; }
 </div>
 
 <div style="text-align:center; margin: 20px;">
-    <button id="fetch-now-btn" style="padding: 10px 20px; font-size: 1em; cursor: pointer;">Fetch Now</button>
-    <p id="fetch-status" style="color: green; margin-top: 10px;"></p>
+    <button id="fetch-now-btn">Fetch Now</button>
+    <p id="fetch-status"></p>
 </div>
 
 <div id="chart-container">
