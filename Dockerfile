@@ -1,20 +1,28 @@
-# Use a full Python image for simplicity
-FROM python:3.11
+# Use a lightweight but complete Python image
+FROM python:3.11-slim
 
-# Set working directory
+# Install system dependencies required by gevent and Flask
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set work directory
 WORKDIR /app
 
-# Copy only requirements.txt first
+# Copy requirements first to leverage caching
 COPY requirements.txt .
 
 # Upgrade pip and install dependencies
 RUN python -m pip install --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir --verbose -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project
+# Copy rest of the code
 COPY . .
 
-# Expose Flask default port
+# Expose the Flask port
 EXPOSE 8080
 
 # Run the app
