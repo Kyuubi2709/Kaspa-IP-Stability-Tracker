@@ -3,7 +3,7 @@ from tracker import Tracker
 import threading
 
 app = Flask(__name__)
-tracker = Tracker('https://api.runonflux.io/apps/location/kaspanodekat', data_file='data/ip_history.csv')
+tracker = Tracker('https://api.runonflux.io/apps/location/kaspanodekat')
 
 def poller():
     import time
