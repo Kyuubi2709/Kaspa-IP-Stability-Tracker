@@ -1,29 +1,31 @@
-# Use a lightweight but complete Python image
 FROM python:3.11-slim
 
-# Install system dependencies required by gevent and Flask
+# Make sure we can see all output, even if pip fails
+ENV PYTHONUNBUFFERED=1
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
     libssl-dev \
     python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
 WORKDIR /app
 
-# Copy requirements first to leverage caching
 COPY requirements.txt .
 
-# Upgrade pip and install dependencies
-RUN python -m pip install --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -r requirements.txt
+# Force pip to show full debug output
+RUN echo "===== Starting pip install =====" && \
+    cat requirements.txt && \
+    python -m pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -vvv -r requirements.txt || \
+    (echo "❌ PIP INSTALL FAILED - showing environment and requirements" && \
+     python -m pip --version && \
+     cat requirements.txt && \
+     exit 1)
 
-# Copy rest of the code
 COPY . .
 
-# Expose the Flask port
-EXPOSE 8080
-
-# Run the app
 CMD ["python", "app.py"]
