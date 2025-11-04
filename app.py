@@ -7,13 +7,14 @@ tracker = Tracker('https://api.runonflux.io/apps/location/kaspanodekat')
 
 
 def poller():
+    """Background poller that updates every 1 hour."""
     import time
     while True:
         tracker.update_ips()
-        time.sleep(3600)  # Poll every hour
+        time.sleep(3600)  # every 1 hour
 
 
-# Start background polling thread
+# Start background thread
 threading.Thread(target=poller, daemon=True).start()
 
 
@@ -34,13 +35,13 @@ def stats():
 
 @app.route("/api/fetch-now", methods=["POST"])
 def fetch_now():
-    """Manual API trigger — updates data and returns stats immediately"""
+    """Manual fetch — updates and returns new stats immediately."""
     tracker.update_ips()
-    stats = tracker.get_stats()  # ✅ get updated stats
+    stats = tracker.get_stats()
     return jsonify({
         "status": "success",
         "message": "API called successfully",
-        "stats": stats  # ✅ send updated stats
+        "stats": stats
     })
 
 
