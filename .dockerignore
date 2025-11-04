@@ -1,0 +1,23 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Git and environment files
+.git
+.gitignore
+.env
+
+# Logs and local data
+*.log
+*.sqlite
+*.db
+
+# System or editor-specific files
+.DS_Store
+.vscode
+.idea
+
+# Docker
+Dockerfile
+docker-compose.yml
