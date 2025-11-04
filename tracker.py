@@ -1,19 +1,17 @@
 import requests
 from datetime import datetime, timedelta
-from dateutil import parser  # ✅ new import for robust timestamp parsing
+from dateutil import parser
 
 
 class Tracker:
     def __init__(self, api_url):
         self.api_url = api_url
-        self.history = []  # Store IP history in memory
+        self.history = []      # Stores past change events
+        self.last_ips = set()  # Store last known IP set
         self.last_poll_time = None
 
     def update_ips(self):
-        """
-        Fetch latest IP data from API and append to history.
-        Avoid duplicates for the same IP at the same timestamp.
-        """
+        """Fetch API data and track how many IPs changed since last call."""
         try:
             resp = requests.get(self.api_url)
             resp.raise_for_status()
@@ -22,28 +20,34 @@ class Tracker:
             print(f"Error fetching API data: {e}")
             return
 
-        new_entries = []
-        for row in data:
-            entry = {
-                "ip": row.get("ip"),
-                "name": row.get("name"),
-                "broadcastedAt": row.get("broadcastedAt")
-            }
+        # Current IP set from API
+        current_ips = {row.get("ip") for row in data if row.get("ip")}
+        change_count = 0
 
-            # Only add if this broadcastedAt for this IP doesn't exist yet
-            if not any(
-                h['ip'] == entry['ip'] and h['broadcastedAt'] == entry['broadcastedAt']
-                for h in self.history
-            ):
-                new_entries.append(entry)
+        # Compare to previous call
+        if self.last_ips:
+            changed_ips = current_ips.symmetric_difference(self.last_ips)
+            change_count = len(changed_ips)
+        else:
+            # First call, no comparison
+            change_count = 0
 
-        self.history.extend(new_entries)
-        self.last_poll_time = datetime.utcnow()
-        if new_entries:
-            print(f"Added {len(new_entries)} new IP entries.")
+        # Record entry
+        entry = {
+            "timestamp": datetime.utcnow(),
+            "change_count": change_count,
+            "total_ips": len(current_ips)
+        }
+        self.history.append(entry)
+
+        # Update tracker state
+        self.last_ips = current_ips
+        self.last_poll_time = entry["timestamp"]
+
+        print(f"[Tracker] API fetched: {len(current_ips)} IPs, {change_count} changes since last call.")
 
     def get_history(self):
-        """Return raw history for charting if needed."""
+        """Return data for chart."""
         return self.history
 
     def get_stats(self):
@@ -55,27 +59,19 @@ class Tracker:
                 "avg_per_4h": 0
             }
 
-        # ✅ Calculate IP changes since last poll (handles fractional seconds)
-        new_ips = 0
-        if self.last_poll_time:
-            try:
-                new_ips = len([
-                    h for h in self.history
-                    if parser.isoparse(h['broadcastedAt']) >= self.last_poll_time - timedelta(hours=1)
-                ])
-            except Exception as e:
-                print(f"Error parsing timestamps in get_stats(): {e}")
-                new_ips = 0
+        # Most recent change count
+        new_ips = self.history[-1]["change_count"]
 
-        # Average IP changes per 4h (simple heuristic)
-        changes_per_4h = []
-        for i in range(0, len(self.history), 4):
-            changes_per_4h.append(len(self.history[i:i + 4]))
-        avg_4h = sum(changes_per_4h) / len(changes_per_4h) if changes_per_4h else 0
+        # Average per 4 hours
+        four_hours_ago = datetime.utcnow() - timedelta(hours=4)
+        recent_entries = [h for h in self.history if h["timestamp"] >= four_hours_ago]
+        avg_4h = (
+            sum(h["change_count"] for h in recent_entries) / len(recent_entries)
+            if recent_entries else 0
+        )
 
         return {
-            "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S")
-            if self.last_poll_time else "Never",
+            "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S"),
             "new_ips": new_ips,
             "avg_per_4h": round(avg_4h, 2)
         }
