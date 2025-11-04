@@ -25,4 +25,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: kyuubi2709/IP-tracker:latest
+          tags: kyuubi2709/ip-tracker:latest
