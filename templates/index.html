@@ -3,11 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <title>Kaspa IP Monitor</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+h1 { text-align: center; color: #333; }
+.dashboard { display: flex; justify-content: space-around; margin: 20px 0; }
+.card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); width: 250px; text-align: center; }
+.card h2 { margin: 0; font-size: 2em; color: #007BFF; }
+.card p { margin: 5px 0 0; font-size: 1em; color: #555; }
+#chart-container { max-width: 800px; margin: 40px auto; }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<h1>Kaspa IP Change History</h1>
-<canvas id="chart" width="800" height="400"></canvas>
+<h1>Kaspa IP Monitor Dashboard</h1>
+
+<div class="dashboard">
+    <div class="card">
+        <h2 id="last-poll">--</h2>
+        <p>Last API Call</p>
+    </div>
+    <div class="card">
+        <h2 id="new-ips">--</h2>
+        <p>IP Changes Since Last Call</p>
+    </div>
+    <div class="card">
+        <h2 id="avg-4h">--</h2>
+        <p>Avg IP Changes / 4h</p>
+    </div>
+</div>
+
+<div id="chart-container">
+    <canvas id="chart"></canvas>
+</div>
+
 <script src="/static/main.js"></script>
 </body>
 </html>
