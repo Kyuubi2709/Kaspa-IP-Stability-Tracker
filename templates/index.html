@@ -11,6 +11,8 @@ h1 { text-align: center; color: #333; }
 .card h2 { margin: 0; font-size: 2em; color: #007BFF; }
 .card p { margin: 5px 0 0; font-size: 1em; color: #555; }
 #chart-container { max-width: 800px; margin: 40px auto; }
+button { background-color: #007BFF; color: white; border: none; border-radius: 5px; }
+button:hover { background-color: #0056b3; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -30,6 +32,11 @@ h1 { text-align: center; color: #333; }
         <h2 id="avg-4h">--</h2>
         <p>Avg IP Changes / 4h</p>
     </div>
+</div>
+
+<div style="text-align:center; margin: 20px;">
+    <button id="fetch-now-btn" style="padding: 10px 20px; font-size: 1em; cursor: pointer;">Fetch Now</button>
+    <p id="fetch-status" style="color: green; margin-top: 10px;"></p>
 </div>
 
 <div id="chart-container">
