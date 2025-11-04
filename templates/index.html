@@ -2,63 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Kaspa IP Monitor Dashboard</title>
+<title>Kaspa IP Monitor</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-    padding: 20px;
-}
-h1 {
-    text-align: center;
-    color: #333;
-}
-.dashboard {
-    display: flex;
-    justify-content: space-around;
-    margin: 20px 0;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-.card {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    width: 250px;
-    text-align: center;
-}
-.card h2 {
-    margin: 0;
-    font-size: 2em;
-    color: #007BFF;
-}
-.card p {
-    margin: 5px 0 0;
-    font-size: 1em;
-    color: #555;
-}
-button {
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-}
-button:hover {
-    background-color: #0056b3;
-}
-#chart-container {
-    max-width: 800px;
-    margin: 40px auto;
-}
-#data-table {
-    max-width: 800px;
-    margin: 20px auto;
-}
+body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+h1 { text-align: center; color: #333; }
+.dashboard { display: flex; justify-content: space-around; margin: 20px 0; }
+.card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); width: 250px; text-align: center; }
+.card h2 { margin: 0; font-size: 2em; color: #007BFF; }
+.card p { margin: 5px 0 0; font-size: 1em; color: #555; }
+#chart-container { max-width: 800px; margin: 40px auto; }
+button { background-color: #007BFF; color: white; border: none; border-radius: 5px; }
+button:hover { background-color: #0056b3; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -81,16 +35,13 @@ button:hover {
 </div>
 
 <div style="text-align:center; margin: 20px;">
-    <button id="fetch-now-btn">Fetch Now</button>
+    <button id="fetch-now-btn" style="padding: 10px 20px; font-size: 1em; cursor: pointer;">Fetch Now</button>
     <p id="fetch-status" style="color: green; margin-top: 10px;"></p>
 </div>
 
 <div id="chart-container">
     <canvas id="chart"></canvas>
 </div>
-
-<!-- 📊 New Data Table -->
-<div id="data-table"></div>
 
 <script src="/static/main.js"></script>
 </body>
