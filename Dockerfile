@@ -1,5 +1,5 @@
 # Use Python 3.11 slim base for smaller image but full package compatibility
-FROM python:3.11-slim
+FROM python:3.10
 
 # Avoid Python buffering output and ensure pip behaves consistently
 ENV PYTHONUNBUFFERED=1 \
