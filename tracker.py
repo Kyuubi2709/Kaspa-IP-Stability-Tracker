@@ -1,4 +1,3 @@
-# tracker.py
 import requests
 from datetime import datetime, timedelta
 
@@ -46,7 +45,7 @@ class Tracker:
         """Return stats for dashboard."""
         if not self.history:
             return {
-                "last_poll": None,
+                "last_poll": "Never",
                 "new_ips": 0,
                 "avg_per_4h": 0
             }
