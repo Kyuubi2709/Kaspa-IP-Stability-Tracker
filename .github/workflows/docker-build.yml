@@ -29,5 +29,3 @@ jobs:
           push: true
           tags: kyuubi2709/ip-tracker:latest
           network: host
-          cache-from: type=registry,ref=kyuubi2709/ip-tracker:latest
-          cache-to: type=registry,ref=kyuubi2709/ip-tracker:latest,mode=max
