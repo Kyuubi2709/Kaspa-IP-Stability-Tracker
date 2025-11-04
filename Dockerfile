@@ -1,8 +1,12 @@
+# Use Python 3.11 slim base for smaller image but full package compatibility
 FROM python:3.11-slim
 
-# Make sure we can see all output, even if pip fails
-ENV PYTHONUNBUFFERED=1
+# Avoid Python buffering output and ensure pip behaves consistently
+ENV PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
 
+# Install essential build tools and libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
@@ -12,20 +16,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
+# Create app directory
 WORKDIR /app
 
+# Copy only requirements first (to leverage Docker layer caching)
 COPY requirements.txt .
 
-# Force pip to show full debug output
+# Upgrade pip/setuptools/wheel and install Python dependencies with verbose logging
 RUN echo "===== Starting pip install =====" && \
-    cat requirements.txt && \
     python -m pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -vvv -r requirements.txt || \
-    (echo "❌ PIP INSTALL FAILED - showing environment and requirements" && \
-     python -m pip --version && \
-     cat requirements.txt && \
-     exit 1)
+    echo "===== Installing requirements =====" && \
+    cat requirements.txt && \
+    pip install -vvv -r requirements.txt
 
+# Copy remaining project files
 COPY . .
 
+# Expose Flask port
+EXPOSE 5000
+
+# Default command to start the Flask app
 CMD ["python", "app.py"]
