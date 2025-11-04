@@ -26,3 +26,6 @@ jobs:
         with:
           push: true
           tags: kyuubi2709/ip-tracker:latest
+          build-args: |
+            PIP_NO_CACHE_DIR=off
+          network: host
