@@ -1,53 +1,44 @@
+# tracker.py
 import requests
-import csv
-import os
 from datetime import datetime
 
 class Tracker:
-    def __init__(self, api_url, data_file='ip_history.csv'):
+    def __init__(self, api_url):
         self.api_url = api_url
-        self.data_file = data_file
-        self.history = []
-        os.makedirs(os.path.dirname(data_file), exist_ok=True) if os.path.dirname(data_file) else None
-        if os.path.exists(data_file):
-            with open(data_file, newline='') as f:
-                reader = csv.DictReader(f)
-                self.history = list(reader)
-
-    def fetch_ips(self):
-        try:
-            r = requests.get(self.api_url, timeout=10)
-            r.raise_for_status()
-            data = r.json()
-            return [(item['name'], item['runningSince'], item['osUptime'], item['ip']) for item in data['data']]
-        except Exception as e:
-            print("Error fetching IPs:", e)
-            return []
+        self.history = []  # Store IP history in memory
 
     def update_ips(self):
-        new_ips = self.fetch_ips()
-        if not new_ips:
+        """
+        Fetch latest IP data from API and append to history.
+        Avoid duplicates for the same IP at the same timestamp.
+        """
+        try:
+            resp = requests.get(self.api_url)
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
+        except Exception as e:
+            print(f"Error fetching API data: {e}")
             return
-        prev_ips = {row['key']: row['ip'] for row in self.history[-1:]} if self.history else {}
-        current_row = {'timestamp': datetime.utcnow().isoformat(), 'changes': 0}
-        for item in new_ips:
-            key = f"{item[0]}|{item[1]}|{item[2]}"
-            if key in prev_ips:
-                if prev_ips[key] != item[3]:
-                    current_row['changes'] += 1
-            else:
-                current_row['changes'] += 1
-        current_row['ip_list'] = ";".join([x[3] for x in new_ips])
-        self.history.append(current_row)
-        self.save()
 
-    def save(self):
-        fieldnames = ['timestamp', 'changes', 'ip_list']
-        with open(self.data_file, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            for row in self.history:
-                writer.writerow(row)
+        new_entries = []
+        for row in data:
+            entry = {
+                "ip": row.get("ip"),
+                "name": row.get("name"),
+                "broadcastedAt": row.get("broadcastedAt")
+            }
+
+            # Only add if this broadcastedAt for this IP doesn't exist yet
+            if not any(h['ip'] == entry['ip'] and h['broadcastedAt'] == entry['broadcastedAt'] for h in self.history):
+                new_entries.append(entry)
+
+        self.history.extend(new_entries)
+        if new_entries:
+            print(f"Added {len(new_entries)} new IP entries.")
 
     def get_history(self):
+        """
+        Return history in a format suitable for the frontend chart.
+        You can customize this later to aggregate by IP, date, etc.
+        """
         return self.history
