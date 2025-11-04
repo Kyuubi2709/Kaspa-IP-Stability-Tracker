@@ -1,45 +1,63 @@
-async function fetchStats() {
-    const res = await fetch('/api/stats');
-    const data = await res.json();
-    document.getElementById('last-poll').textContent = data.last_poll;
-    document.getElementById('new-ips').textContent = data.new_ips;
-    document.getElementById('avg-4h').textContent = data.avg_per_4h;
-}
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from tracker import Tracker
+import asyncio
 
-// Optional: chart historical IP changes
-async function fetchHistory(){
-    const res = await fetch('/api/history');
-    const data = await res.json();
-    const labels = data.map((x,i) => i+1); // index for x-axis
-    const changes = data.map(x => 1);      // each entry = 1 change
-    const ctx = document.getElementById('chart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{label: 'IP Changes Over Time', data: changes, borderColor: 'blue', fill: false}]
-        }
-    });
-}
+app = FastAPI()
 
-// Manual Fetch button
-document.getElementById('fetch-now-btn').addEventListener('click', async () => {
-    const statusEl = document.getElementById('fetch-status');
-    statusEl.textContent = "Fetching...";
-    
-    try {
-        const res = await fetch('/api/fetch-now', { method: 'POST' });
-        const data = await res.json();
-        statusEl.textContent = data.message;
-        fetchStats();   // Refresh dashboard
-        fetchHistory(); // Refresh chart
-    } catch (err) {
-        statusEl.textContent = "Error calling API";
-        console.error(err);
-    }
-});
+# Allow frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # restrict later if needed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-// Initial load
-fetchStats();
-fetchHistory();
-setInterval(fetchStats, 60 * 1000); // update stats every 1 min
+# Initialize tracker
+tracker = Tracker(api_url="https://api.kaspa.org/info/peers")  # your real API endpoint here
+
+# ------------------------
+# 🔁 Automatic background task
+# ------------------------
+@app.on_event("startup")
+async def start_background_fetch():
+    """Runs automatic IP fetch every 1 hour."""
+    async def auto_fetch():
+        while True:
+            print("[Auto Fetch] Calling tracker.update_ips() ...")
+            tracker.update_ips()
+            print("[Auto Fetch] Stats updated:", tracker.get_stats())
+            await asyncio.sleep(3600)  # 3600 sec = 1 hour
+
+    asyncio.create_task(auto_fetch())
+
+
+# ------------------------
+# 🖱 Manual fetch endpoint
+# ------------------------
+@app.get("/api/fetch")
+def fetch_ips():
+    """Manual trigger for Fetch Now button."""
+    tracker.update_ips()
+    stats = tracker.get_stats()
+    return {"status": "success", "message": "API called successfully", "stats": stats}
+
+
+# ------------------------
+# 📊 Stats endpoint
+# ------------------------
+@app.get("/api/stats")
+def get_stats():
+    """Return latest tracker stats for dashboard cards."""
+    stats = tracker.get_stats()
+    return stats
+
+
+# ------------------------
+# 📈 History endpoint
+# ------------------------
+@app.get("/api/history")
+def get_history():
+    """Return IP change history for the chart."""
+    return {"history": tracker.get_history()}
