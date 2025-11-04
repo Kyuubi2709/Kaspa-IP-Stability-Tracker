@@ -7,11 +7,11 @@ tracker = Tracker('https://api.runonflux.io/apps/location/kaspanodekat')
 
 
 def poller():
-    """Background poller that updates every 1 hour."""
+    """Background poller that updates every 4 hour."""
     import time
     while True:
         tracker.update_ips()
-        time.sleep(3600)  # every 1 hour
+        time.sleep(4 * 3600)  # every 4 hours
 
 
 # Start background thread
