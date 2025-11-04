@@ -1,11 +1,12 @@
 # tracker.py
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Tracker:
     def __init__(self, api_url):
         self.api_url = api_url
         self.history = []  # Store IP history in memory
+        self.last_poll_time = None
 
     def update_ips(self):
         """
@@ -33,12 +34,38 @@ class Tracker:
                 new_entries.append(entry)
 
         self.history.extend(new_entries)
+        self.last_poll_time = datetime.utcnow()
         if new_entries:
             print(f"Added {len(new_entries)} new IP entries.")
 
     def get_history(self):
-        """
-        Return history in a format suitable for the frontend chart.
-        You can customize this later to aggregate by IP, date, etc.
-        """
+        """Return raw history for charting if needed."""
         return self.history
+
+    def get_stats(self):
+        """Return stats for dashboard."""
+        if not self.history:
+            return {
+                "last_poll": None,
+                "new_ips": 0,
+                "avg_per_4h": 0
+            }
+
+        # Calculate IP changes since last poll
+        new_ips = 0
+        if self.last_poll_time:
+            new_ips = len([h for h in self.history 
+                           if datetime.strptime(h['broadcastedAt'], "%Y-%m-%dT%H:%M:%SZ") >= self.last_poll_time - timedelta(hours=1)])
+
+        # Average IP changes per 4h
+        changes_per_4h = []
+        now = datetime.utcnow()
+        for i in range(0, len(self.history), 4):
+            changes_per_4h.append(len(self.history[i:i+4]))
+        avg_4h = sum(changes_per_4h)/len(changes_per_4h) if changes_per_4h else 0
+
+        return {
+            "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S") if self.last_poll_time else "Never",
+            "new_ips": new_ips,
+            "avg_per_4h": round(avg_4h, 2)
+        }
