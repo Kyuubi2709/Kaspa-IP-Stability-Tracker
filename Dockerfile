@@ -33,7 +33,7 @@ RUN echo "===== Starting pip install =====" && \
 COPY . .
 
 # Expose Flask port
-EXPOSE 5000
+EXPOSE 8080
 
 # Default command to start the Flask app
 CMD ["python", "app.py"]
