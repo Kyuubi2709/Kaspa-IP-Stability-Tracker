@@ -11,8 +11,12 @@ async function fetchStats() {
 async function fetchHistory() {
     const res = await fetch('/api/history');
     const data = await res.json();
-    const labels = data.map((x, i) => i + 1);
-    const changes = data.map(x => 1);
+
+    const labels = data.map((h) =>
+        new Date(h.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    );
+    const changes = data.map((h) => h.change_count);
+
     const ctx = document.getElementById('chart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -23,9 +27,17 @@ async function fetchHistory() {
                     label: 'IP Changes Over Time',
                     data: changes,
                     borderColor: 'blue',
-                    fill: false
+                    fill: false,
+                    tension: 0.1
                 }
             ]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
 }
@@ -40,14 +52,12 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
         const data = await res.json();
         statusEl.textContent = data.message;
 
-        // ✅ Immediately update dashboard stats
         if (data.stats) {
             document.getElementById('last-poll').textContent = data.stats.last_poll;
             document.getElementById('new-ips').textContent = data.stats.new_ips;
             document.getElementById('avg-4h').textContent = data.stats.avg_per_4h;
         }
 
-        // Refresh data as before
         fetchStats();
         fetchHistory();
     } catch (err) {
@@ -59,4 +69,4 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
 // Initial load
 fetchStats();
 fetchHistory();
-setInterval(fetchStats, 60 * 1000); // auto-refresh every minute
+setInterval(fetchStats, 60 * 1000); // refresh stats every minute
