@@ -1,96 +1,45 @@
-// ------------------------
-// DOM Elements
-// ------------------------
-const lastPollEl = document.getElementById("last-poll");
-const newIpsEl = document.getElementById("new-ips");
-const avg4hEl = document.getElementById("avg-4h");
-const fetchBtn = document.getElementById("fetch-now-btn");
-const fetchStatus = document.getElementById("fetch-status");
-
-// ------------------------
-// Chart setup
-// ------------------------
-const ctx = document.getElementById("chart").getContext("2d");
-const chart = new Chart(ctx, {
-    type: "line",
-    data: {
-        labels: [], // timestamps
-        datasets: [{
-            label: "IP Changes",
-            data: [],
-            borderColor: "#007BFF",
-            backgroundColor: "rgba(0, 123, 255, 0.2)",
-            tension: 0.3,
-        }],
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-        },
-        scales: {
-            x: { title: { display: true, text: "Time" } },
-            y: { title: { display: true, text: "IP Changes" } },
-        },
-    },
-});
-
-// ------------------------
-// Fetch latest stats
-// ------------------------
 async function fetchStats() {
-    try {
-        const res = await fetch("/api/stats");
-        const data = await res.json();
-        lastPollEl.textContent = data.last_poll || "--";
-        newIpsEl.textContent = data.new_ips ?? "--";
-        avg4hEl.textContent = data.avg_per_4h ?? "--";
-    } catch (err) {
-        console.error("Error fetching stats:", err);
-    }
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    document.getElementById('last-poll').textContent = data.last_poll;
+    document.getElementById('new-ips').textContent = data.new_ips;
+    document.getElementById('avg-4h').textContent = data.avg_per_4h;
 }
 
-// ------------------------
-// Fetch history for chart
-// ------------------------
-async function fetchHistory() {
-    try {
-        const res = await fetch("/api/history");
-        const json = await res.json();
-        const history = json.history || [];
-
-        chart.data.labels = history.map(h => h.timestamp);
-        chart.data.datasets[0].data = history.map(h => h.new_ips);
-        chart.update();
-    } catch (err) {
-        console.error("Error fetching history:", err);
-    }
+// Optional: chart historical IP changes
+async function fetchHistory(){
+    const res = await fetch('/api/history');
+    const data = await res.json();
+    const labels = data.map((x,i) => i+1); // index for x-axis
+    const changes = data.map(x => 1);      // each entry = 1 change
+    const ctx = document.getElementById('chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{label: 'IP Changes Over Time', data: changes, borderColor: 'blue', fill: false}]
+        }
+    });
 }
 
-// ------------------------
-// Manual Fetch Now
-// ------------------------
-fetchBtn.addEventListener("click", async () => {
-    fetchStatus.textContent = "Fetching...";
+// Manual Fetch button
+document.getElementById('fetch-now-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('fetch-status');
+    statusEl.textContent = "Fetching...";
+    
     try {
-        const res = await fetch("/api/fetch");
+        const res = await fetch('/api/fetch-now', { method: 'POST' });
         const data = await res.json();
-        fetchStatus.textContent = "✅ Fetch complete!";
-        fetchStats();
-        fetchHistory();
+        statusEl.textContent = data.message;
+        fetchStats();   // Refresh dashboard
+        fetchHistory(); // Refresh chart
     } catch (err) {
-        fetchStatus.textContent = "❌ Fetch failed!";
-        console.error("Error fetching manually:", err);
+        statusEl.textContent = "Error calling API";
+        console.error(err);
     }
-    setTimeout(() => fetchStatus.textContent = "", 3000);
 });
 
-// ------------------------
-// Auto-refresh dashboard every 60s
-// ------------------------
+// Initial load
 fetchStats();
 fetchHistory();
-setInterval(() => {
-    fetchStats();
-    fetchHistory();
-}, 60000);
+setInterval(fetchStats, 60 * 1000); // update stats every 1 min
