@@ -6,6 +6,7 @@ class Tracker:
         self.api_url = api_url
         self.history = []  # Store IP history in memory
         self.last_poll_time = None
+        self.prev_poll_time = None  # New: track previous poll time
 
     def update_ips(self):
         """
@@ -20,6 +21,10 @@ class Tracker:
             print(f"Error fetching API data: {e}")
             return
 
+        # Move previous poll time tracking before we update
+        self.prev_poll_time = self.last_poll_time
+        self.last_poll_time = datetime.utcnow()
+
         new_entries = []
         for row in data:
             entry = {
@@ -32,10 +37,11 @@ class Tracker:
             if not any(h['ip'] == entry['ip'] and h['broadcastedAt'] == entry['broadcastedAt'] for h in self.history):
                 new_entries.append(entry)
 
-        self.history.extend(new_entries)
-        self.last_poll_time = datetime.utcnow()
         if new_entries:
             print(f"Added {len(new_entries)} new IP entries.")
+            self.history.extend(new_entries)
+        else:
+            print("No new IP entries found.")
 
     def get_history(self):
         """Return raw history for charting if needed."""
@@ -50,18 +56,30 @@ class Tracker:
                 "avg_per_4h": 0
             }
 
-        # Calculate IP changes since last poll
+        # Calculate new IPs since last call (between prev_poll_time and last_poll_time)
         new_ips = 0
-        if self.last_poll_time:
-            new_ips = len([h for h in self.history 
-                           if datetime.strptime(h['broadcastedAt'], "%Y-%m-%dT%H:%M:%SZ") >= self.last_poll_time - timedelta(hours=1)])
+        if self.prev_poll_time and self.last_poll_time:
+            new_ips = len([
+                h for h in self.history
+                if self.prev_poll_time <= datetime.strptime(h['broadcastedAt'], "%Y-%m-%dT%H:%M:%SZ") <= self.last_poll_time
+            ])
 
-        # Average IP changes per 4h
+        # Average IP changes per 4h (optional smoothing)
+        times = [datetime.strptime(h['broadcastedAt'], "%Y-%m-%dT%H:%M:%SZ") for h in self.history]
+        times.sort()
+
         changes_per_4h = []
-        now = datetime.utcnow()
-        for i in range(0, len(self.history), 4):
-            changes_per_4h.append(len(self.history[i:i+4]))
-        avg_4h = sum(changes_per_4h)/len(changes_per_4h) if changes_per_4h else 0
+        if times:
+            start = times[0]
+            end = times[-1]
+            current = start
+            while current < end:
+                next_window = current + timedelta(hours=4)
+                changes = len([t for t in times if current <= t < next_window])
+                changes_per_4h.append(changes)
+                current = next_window
+
+        avg_4h = sum(changes_per_4h) / len(changes_per_4h) if changes_per_4h else 0
 
         return {
             "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S") if self.last_poll_time else "Never",
