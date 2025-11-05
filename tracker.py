@@ -47,8 +47,15 @@ class Tracker:
         print(f"[Tracker] API fetched: {len(current_ips)} IPs, {change_count} changes since last call.")
 
     def get_history(self):
-        """Return data for chart."""
-        return self.history
+        """Return data for chart and table (with serializable timestamps)."""
+        serialized = []
+        for h in self.history:
+            serialized.append({
+                "timestamp": h["timestamp"].isoformat(),  # convert datetime to string for JSON
+                "change_count": h["change_count"],
+                "total_ips": h["total_ips"]
+            })
+        return serialized
 
     def get_stats(self):
         """Return stats for dashboard."""
@@ -56,7 +63,7 @@ class Tracker:
             return {
                 "last_poll": "Never",
                 "new_ips": 0,
-                "avg_per_4h": 0
+                "avg_per_day": 0
             }
 
         # Most recent change count
