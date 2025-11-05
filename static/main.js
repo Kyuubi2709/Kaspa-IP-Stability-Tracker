@@ -7,6 +7,7 @@ async function fetchStats() {
     document.getElementById('new-ips').textContent = data.new_ips;
     document.getElementById('avg-24h').textContent = data.avg_per_day;
     document.getElementById('total-changes').textContent = data.total_changes; // ✅ new
+    document.getElementById('total-calls').textContent = data.total_api_calls;
 }
 
 // Fetch and render IP history chart + table
@@ -78,6 +79,7 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
             document.getElementById('new-ips').textContent = data.stats.new_ips;
             document.getElementById('avg-24h').textContent = data.stats.avg_per_day;
             document.getElementById('total-changes').textContent = data.stats.total_changes; // ✅ new
+            document.getElementById('total-calls').textContent = data.stats.total_api_calls;
         }
 
         setTimeout(() => {
