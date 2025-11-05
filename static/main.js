@@ -79,7 +79,7 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
         }
 
         fetchStats();
-        fetchHistory();
+        setTimeout(fetchHistory, 500); // wait half a second before reloading table/chart
     } catch (err) {
         statusEl.textContent = "Error calling API";
         console.error(err);
