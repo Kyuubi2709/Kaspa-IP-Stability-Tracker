@@ -6,11 +6,11 @@ from dateutil import parser
 class Tracker:
     def __init__(self, api_url):
         self.api_url = api_url
-        self.history = []       # Stores past change events
-        self.last_ips = set()   # Store last known IP set
+        self.history = []        # Stores past change events
+        self.last_ips = set()    # Store last known IP set
         self.last_poll_time = None
-        self.total_changes = 0  # cumulative IP changes since start
-        self.total_api_calls = 0  # ✅ count all API calls (auto + manual)
+        self.total_changes = 0   # Cumulative IP changes since start
+        self.total_api_calls = 0 # Count all API calls (auto + manual)
 
     def update_ips(self):
         """Fetch API data and track how many IPs changed since last call."""
@@ -29,11 +29,18 @@ class Tracker:
         current_ips = {row.get("ip") for row in data if row.get("ip")}
         change_count = 0
 
-        # Compare to previous call
+        # ✅ Compare to previous call (smart replacement-based logic)
         if self.last_ips:
-            changed_ips = current_ips.symmetric_difference(self.last_ips)
-            change_count = len(changed_ips)
+            added = current_ips - self.last_ips
+            removed = self.last_ips - current_ips
+
+            # Count replacements only (ignore temporary adds/removes)
+            if added and removed:
+                change_count = min(len(added), len(removed))
+            else:
+                change_count = 0
         else:
+            # First call, no comparison
             change_count = 0
 
         # ✅ Add to total change counter
@@ -52,7 +59,7 @@ class Tracker:
         self.last_poll_time = entry["timestamp"]
 
         print(
-            f"[Tracker] API fetched: {len(current_ips)} IPs, {change_count} changes since last call. "
+            f"[Tracker] API fetched: {len(current_ips)} IPs, {change_count} true replacements since last call. "
             f"Total changes: {self.total_changes}, Total calls: {self.total_api_calls}"
         )
 
@@ -92,5 +99,5 @@ class Tracker:
             "new_ips": new_ips,
             "avg_per_day": round(avg_day, 2),
             "total_changes": self.total_changes,
-            "total_api_calls": self.total_api_calls  # ✅ added here
+            "total_api_calls": self.total_api_calls
         }
