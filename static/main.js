@@ -5,15 +5,14 @@ async function fetchStats() {
     document.getElementById('last-poll').textContent = data.last_poll;
     document.getElementById('new-ips').textContent = data.new_ips;
     document.getElementById('avg-24h').textContent = data.avg_per_day;
-    document.getElementById('total-changes').textContent = data.total_changes; // ✅ new
+    document.getElementById('total-changes').textContent = data.total_ip_changes;
+    document.getElementById('total-calls').textContent = data.total_api_calls;
 }
 
-// Fetch and render IP history chart + table
+// Fetch and render IP history chart
 async function fetchHistory() {
     const res = await fetch('/api/history');
     const data = await res.json();
-
-    if (!data || data.length === 0) return;
 
     const labels = data.map((h) =>
         new Date(h.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -21,10 +20,7 @@ async function fetchHistory() {
     const changes = data.map((h) => h.change_count);
 
     const ctx = document.getElementById('chart').getContext('2d');
-
-    if (window.ipChart) window.ipChart.destroy();
-
-    window.ipChart = new Chart(ctx, {
+    new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -39,27 +35,13 @@ async function fetchHistory() {
             ]
         },
         options: {
-            responsive: true,
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true
+                }
             }
         }
     });
-
-    const tbody = document.getElementById('history-body');
-    tbody.innerHTML = "";
-    data
-        .slice()
-        .reverse()
-        .forEach((h) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${new Date(h.timestamp).toUTCString()}</td>
-                <td>${h.change_count}</td>
-                <td>${h.total_ips}</td>
-            `;
-            tbody.appendChild(row);
-        });
 }
 
 // Manual Fetch button
@@ -76,14 +58,12 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
             document.getElementById('last-poll').textContent = data.stats.last_poll;
             document.getElementById('new-ips').textContent = data.stats.new_ips;
             document.getElementById('avg-24h').textContent = data.stats.avg_per_day;
-            document.getElementById('total-changes').textContent = data.stats.total_changes; // ✅ new
+            document.getElementById('total-changes').textContent = data.stats.total_ip_changes;
+            document.getElementById('total-calls').textContent = data.stats.total_api_calls;
         }
 
-        setTimeout(() => {
-            fetchStats();
-            fetchHistory();
-        }, 800);
-
+        fetchStats();
+        fetchHistory();
     } catch (err) {
         statusEl.textContent = "Error calling API";
         console.error(err);
@@ -93,4 +73,4 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
 // Initial load
 fetchStats();
 fetchHistory();
-setInterval(fetchStats, 60 * 1000);
+setInterval(fetchStats, 60 * 1000); // refresh stats every minute
