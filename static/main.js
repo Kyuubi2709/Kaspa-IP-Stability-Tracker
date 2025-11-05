@@ -4,7 +4,7 @@ async function fetchStats() {
     const data = await res.json();
     document.getElementById('last-poll').textContent = data.last_poll;
     document.getElementById('new-ips').textContent = data.new_ips;
-    document.getElementById('avg-4h').textContent = data.avg_per_4h;
+    document.getElementById('avg-4h').textContent = data.avg_per_day;
 }
 
 // Fetch and render IP history chart
@@ -55,7 +55,7 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
         if (data.stats) {
             document.getElementById('last-poll').textContent = data.stats.last_poll;
             document.getElementById('new-ips').textContent = data.stats.new_ips;
-            document.getElementById('avg-4h').textContent = data.stats.avg_per_4h;
+            document.getElementById('avg-4h').textContent = data.avg_per_day;
         }
 
         fetchStats();
