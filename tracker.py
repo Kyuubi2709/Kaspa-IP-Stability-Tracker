@@ -9,7 +9,7 @@ class Tracker:
         self.history = []      # Stores past change events
         self.last_ips = set()  # Store last known IP set
         self.last_poll_time = None
-        self.total_api_calls = 0  # ✅ Track number of API calls since start
+        self.total_api_calls = 0  # Track number of API calls since start
 
     def update_ips(self):
         """Fetch API data and track how many IPs changed since last call."""
@@ -18,7 +18,7 @@ class Tracker:
             resp.raise_for_status()
             data = resp.json().get("data", [])
         except Exception as e:
-            print(f"Error fetching API data: {e}")
+            print(f"[Tracker] Error fetching API data: {e}")
             return
 
         # Count this API call
@@ -33,8 +33,7 @@ class Tracker:
             changed_ips = current_ips.symmetric_difference(self.last_ips)
             change_count = len(changed_ips)
         else:
-            # First call, no comparison
-            change_count = 0
+            change_count = 0  # first run
 
         # Record entry
         entry = {
@@ -52,11 +51,11 @@ class Tracker:
               f"Total calls: {self.total_api_calls}")
 
     def get_history(self):
-        """Return data for chart."""
+        """Return data for chart/table."""
         return self.history
 
     def get_stats(self):
-        """Return stats for dashboard."""
+        """Return stats for dashboard safely."""
         if not self.history:
             return {
                 "last_poll": "Never",
@@ -81,7 +80,7 @@ class Tracker:
         )
 
         return {
-            "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S") if self.last_poll_time else "Never",
             "new_ips": new_ips,
             "avg_per_day": round(avg_day, 2),
             "total_api_calls": self.total_api_calls,
