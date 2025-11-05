@@ -4,8 +4,9 @@ import threading
 import os
 import time
 
-# ✅ Read API URL from environment variable (default fallback)
+# ✅ Read from environment variables
 API_URL = os.getenv("API_URL", "https://api.runonflux.io/apps/location/kaspanodekat")
+APP_NAME = os.getenv("APP_NAME", "Kaspa")  # ✅ new configurable app name
 
 app = Flask(__name__)
 tracker = Tracker(API_URL)
@@ -24,7 +25,8 @@ threading.Thread(target=poller, daemon=True).start()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    # Pass APP_NAME to the HTML template
+    return render_template("index.html", app_name=APP_NAME)
 
 
 @app.route("/api/history")
