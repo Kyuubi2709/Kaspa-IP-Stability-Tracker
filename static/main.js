@@ -7,11 +7,14 @@ async function fetchStats() {
     document.getElementById('avg-24h').textContent = data.avg_per_day;
 }
 
-// Fetch and render IP history chart
+// Fetch and render IP history chart + table
 async function fetchHistory() {
     const res = await fetch('/api/history');
     const data = await res.json();
 
+    if (!data || data.length === 0) return;
+
+    // ---- Chart rendering ----
     const labels = data.map((h) =>
         new Date(h.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     );
@@ -40,6 +43,23 @@ async function fetchHistory() {
             }
         }
     });
+
+    // ---- Table rendering ----
+    const tbody = document.getElementById('history-body');
+    tbody.innerHTML = ""; // clear existing rows
+
+    data
+        .slice()
+        .reverse() // newest first
+        .forEach((h) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${new Date(h.timestamp).toUTCString()}</td>
+                <td>${h.change_count}</td>
+                <td>${h.total_ips}</td>
+            `;
+            tbody.appendChild(row);
+        });
 }
 
 // Manual Fetch button
