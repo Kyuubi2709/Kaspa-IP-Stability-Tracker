@@ -4,89 +4,88 @@
 <meta charset="UTF-8">
 <title>Kaspa IP Monitor</title>
 <style>
-body { 
-    font-family: Arial, sans-serif; 
-    background: #f4f6f8; 
-    margin: 0; 
-    padding: 20px; 
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 20px;
 }
-h1 { 
-    text-align: center; 
-    color: #333; 
+h1 {
+    text-align: center;
+    color: #333;
 }
-.dashboard { 
-    display: flex; 
-    justify-content: space-around; 
-    margin: 20px 0; 
+.dashboard {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
     flex-wrap: wrap;
+    gap: 10px;
 }
-.card { 
-    background: #fff; 
-    padding: 20px; 
-    border-radius: 10px; 
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
-    width: 250px; 
-    text-align: center; 
-    margin: 10px;
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    width: 250px;
+    text-align: center;
 }
-.card h2 { 
-    margin: 0; 
-    font-size: 2em; 
-    color: #007BFF; 
+.card h2 {
+    margin: 0;
+    font-size: 2em;
+    color: #007BFF;
 }
-.card p { 
-    margin: 5px 0 0; 
-    font-size: 1em; 
-    color: #555; 
-}
-#chart-container { 
-    max-width: 800px; 
-    margin: 40px auto; 
-}
-button { 
-    background-color: #007BFF; 
-    color: white; 
-    border: none; 
-    border-radius: 5px; 
-    padding: 10px 20px; 
-    cursor: pointer;
+.card p {
+    margin: 5px 0 0;
     font-size: 1em;
+    color: #555;
 }
-button:hover { 
-    background-color: #0056b3; 
-}
-#table-container {
+#chart-container {
     max-width: 800px;
     margin: 40px auto;
 }
-#history-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    border-radius: 10px;
-    overflow: hidden;
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
 }
-#history-table th {
-    background: #007BFF;
+button:hover {
+    background-color: #0056b3;
+}
+#data-table {
+    max-width: 800px;
+    margin: 30px auto;
+    border-collapse: collapse;
+    width: 100%;
+}
+#data-table th {
+    background-color: #007BFF;
     color: white;
     padding: 10px;
+    text-align: left;
 }
-#history-table td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    text-align: center;
+#data-table td {
+    background: #fff;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
 }
-#history-table tr:hover {
+#data-table tr:hover {
     background-color: #f1f1f1;
 }
-#history-table th, #history-table td {
-    font-size: 0.95em;
+#table-title {
+    text-align: center;
+    margin-top: 40px;
+    color: #333;
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+
 <h1>Kaspa IP Monitor Dashboard</h1>
 
 <div class="dashboard">
@@ -97,6 +96,10 @@ button:hover {
     <div class="card">
         <h2 id="new-ips">--</h2>
         <p>IP Changes Since Last Call</p>
+    </div>
+    <div class="card">
+        <h2 id="total-changes">--</h2>
+        <p>Total IP Changes Since Start</p>
     </div>
     <div class="card">
         <h2 id="avg-24h">--</h2>
@@ -113,21 +116,19 @@ button:hover {
     <canvas id="chart"></canvas>
 </div>
 
-<div id="table-container">
-    <h2 style="text-align:center;color:#333;">IP Change Log</h2>
-    <table id="history-table">
-        <thead>
-            <tr>
-                <th>Timestamp (UTC)</th>
-                <th>IP Changes</th>
-                <th>Total IPs</th>
-            </tr>
-        </thead>
-        <tbody id="history-body">
-            <tr><td colspan="3" style="text-align:center;padding:15px;">No data yet</td></tr>
-        </tbody>
-    </table>
-</div>
+<h2 id="table-title">IP Change Log</h2>
+<table id="data-table">
+    <thead>
+        <tr>
+            <th>Timestamp (UTC)</th>
+            <th>IP Changes</th>
+            <th>Total IPs</th>
+        </tr>
+    </thead>
+    <tbody id="history-body">
+        <!-- Rows filled dynamically -->
+    </tbody>
+</table>
 
 <script src="/static/main.js"></script>
 </body>
