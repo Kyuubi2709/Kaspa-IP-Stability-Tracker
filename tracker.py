@@ -62,10 +62,10 @@ class Tracker:
         # Most recent change count
         new_ips = self.history[-1]["change_count"]
 
-        # Average per 4 hours
-        four_hours_ago = datetime.utcnow() - timedelta(hours=4)
-        recent_entries = [h for h in self.history if h["timestamp"] >= four_hours_ago]
-        avg_4h = (
+        # Average per 24 hours
+        twentyfour_hours_ago = datetime.utcnow() - timedelta(hours=24)
+        recent_entries = [h for h in self.history if h["timestamp"] >= twentyfour_hours_ago]
+        avg_day = (
             sum(h["change_count"] for h in recent_entries) / len(recent_entries)
             if recent_entries else 0
         )
@@ -73,5 +73,5 @@ class Tracker:
         return {
             "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S"),
             "new_ips": new_ips,
-            "avg_per_4h": round(avg_4h, 2)
+            "avg_per_day": round(avg_day, 2)
         }
