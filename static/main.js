@@ -21,7 +21,13 @@ async function fetchHistory() {
     const changes = data.map((h) => h.change_count);
 
     const ctx = document.getElementById('chart').getContext('2d');
-    new Chart(ctx, {
+
+    // Destroy existing chart instance if it exists (prevents overlap)
+    if (window.ipChart) {
+        window.ipChart.destroy();
+    }
+
+    window.ipChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -36,6 +42,7 @@ async function fetchHistory() {
             ]
         },
         options: {
+            responsive: true,
             scales: {
                 y: {
                     beginAtZero: true
@@ -78,8 +85,12 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
             document.getElementById('avg-24h').textContent = data.stats.avg_per_day;
         }
 
-        fetchStats();
-        setTimeout(fetchHistory, 500); // wait half a second before reloading table/chart
+        // Wait a moment to ensure backend updates fully propagate
+        setTimeout(() => {
+            fetchStats();
+            fetchHistory();
+        }, 800);
+
     } catch (err) {
         statusEl.textContent = "Error calling API";
         console.error(err);
