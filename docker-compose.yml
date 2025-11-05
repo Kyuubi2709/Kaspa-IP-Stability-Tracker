@@ -5,6 +5,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - API_URL=https://api.runonflux.io/apps/location/KaspaNodeIgra
+      - API_URL=https://api.runonflux.io/apps/location/kaspanodekat
+      - APP_NAME=Kaspa 
     volumes:
       - ./data:/data
