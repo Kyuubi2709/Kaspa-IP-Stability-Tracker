@@ -5,6 +5,7 @@ async function fetchStats() {
     document.getElementById('last-poll').textContent = data.last_poll;
     document.getElementById('new-ips').textContent = data.new_ips;
     document.getElementById('avg-24h').textContent = data.avg_per_day;
+    document.getElementById('total-changes').textContent = data.total_changes; // ✅ new
 }
 
 // Fetch and render IP history chart + table
@@ -14,7 +15,6 @@ async function fetchHistory() {
 
     if (!data || data.length === 0) return;
 
-    // ---- Chart rendering ----
     const labels = data.map((h) =>
         new Date(h.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     );
@@ -22,10 +22,7 @@ async function fetchHistory() {
 
     const ctx = document.getElementById('chart').getContext('2d');
 
-    // Destroy existing chart instance if it exists (prevents overlap)
-    if (window.ipChart) {
-        window.ipChart.destroy();
-    }
+    if (window.ipChart) window.ipChart.destroy();
 
     window.ipChart = new Chart(ctx, {
         type: 'line',
@@ -44,20 +41,16 @@ async function fetchHistory() {
         options: {
             responsive: true,
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true }
             }
         }
     });
 
-    // ---- Table rendering ----
     const tbody = document.getElementById('history-body');
-    tbody.innerHTML = ""; // clear existing rows
-
+    tbody.innerHTML = "";
     data
         .slice()
-        .reverse() // newest first
+        .reverse()
         .forEach((h) => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -83,9 +76,9 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
             document.getElementById('last-poll').textContent = data.stats.last_poll;
             document.getElementById('new-ips').textContent = data.stats.new_ips;
             document.getElementById('avg-24h').textContent = data.stats.avg_per_day;
+            document.getElementById('total-changes').textContent = data.stats.total_changes; // ✅ new
         }
 
-        // Wait a moment to ensure backend updates fully propagate
         setTimeout(() => {
             fetchStats();
             fetchHistory();
@@ -100,4 +93,4 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
 // Initial load
 fetchStats();
 fetchHistory();
-setInterval(fetchStats, 60 * 1000); // refresh stats every minute
+setInterval(fetchStats, 60 * 1000);
