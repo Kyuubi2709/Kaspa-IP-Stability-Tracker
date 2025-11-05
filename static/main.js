@@ -9,16 +9,18 @@ async function fetchStats() {
     document.getElementById('total-calls').textContent = data.total_api_calls;
 }
 
-// Fetch and render IP history chart
+// Fetch and render IP history chart + table
 async function fetchHistory() {
     const res = await fetch('/api/history');
     const data = await res.json();
 
+    // Chart labels
     const labels = data.map((h) =>
         new Date(h.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     );
     const changes = data.map((h) => h.change_count);
 
+    // Chart
     const ctx = document.getElementById('chart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -36,11 +38,23 @@ async function fetchHistory() {
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true }
             }
         }
+    });
+
+    // ✅ Table update
+    const tbody = document.querySelector('#history-table tbody');
+    tbody.innerHTML = '';
+    data.slice().reverse().forEach(h => {
+        const row = document.createElement('tr');
+        const time = new Date(h.timestamp).toUTCString();
+        row.innerHTML = `
+            <td>${time}</td>
+            <td>${h.change_count}</td>
+            <td>${h.total_ips}</td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
@@ -52,7 +66,7 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
     try {
         const res = await fetch('/api/fetch-now', { method: 'POST' });
         const data = await res.json();
-        statusEl.textContent = data.message;
+        statusEl.textContent = `${data.message} (${data.stats ? data.stats.total_api_calls : ''} total calls)`;
 
         if (data.stats) {
             document.getElementById('last-poll').textContent = data.stats.last_poll;
@@ -62,15 +76,16 @@ document.getElementById('fetch-now-btn').addEventListener('click', async () => {
             document.getElementById('total-calls').textContent = data.stats.total_api_calls;
         }
 
-        fetchStats();
-        fetchHistory();
+        // ✅ Refresh stats and table immediately
+        await fetchStats();
+        await fetchHistory();
     } catch (err) {
         statusEl.textContent = "Error calling API";
         console.error(err);
     }
 });
 
-// Initial load
+// Initial load + auto-refresh
 fetchStats();
 fetchHistory();
 setInterval(fetchStats, 60 * 1000); // refresh stats every minute
