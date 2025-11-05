@@ -1,14 +1,18 @@
 from flask import Flask, render_template, jsonify
 from tracker import Tracker
 import threading
+import os
+import time
+
+# ✅ Read API URL from environment variable (default fallback)
+API_URL = os.getenv("API_URL", "https://api.runonflux.io/apps/location/kaspanodekat")
 
 app = Flask(__name__)
-tracker = Tracker('https://api.runonflux.io/apps/location/kaspanodekat')
+tracker = Tracker(API_URL)
 
 
 def poller():
-    """Background poller that updates every 4 hour."""
-    import time
+    """Background poller that updates every 4 hours."""
     while True:
         tracker.update_ips()
         time.sleep(4 * 3600)  # every 4 hours
@@ -40,7 +44,7 @@ def fetch_now():
     stats = tracker.get_stats()
     return jsonify({
         "status": "success",
-        "message": "API called successfully",
+        "message": f"API called successfully ({API_URL})",
         "stats": stats
     })
 
