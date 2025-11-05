@@ -1,12 +1,13 @@
-# Use Python 3.11 slim base for smaller image but full package compatibility
+# Use a stable Python base image
 FROM python:3.10
 
-# Avoid Python buffering output and ensure pip behaves consistently
+# Environment configuration
 ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    API_URL="https://api.runonflux.io/apps/location/kaspanodekat"  # ✅ default value
 
-# Install essential build tools and libraries
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
@@ -16,24 +17,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
+# Create working directory
 WORKDIR /app
 
-# Copy only requirements first (to leverage Docker layer caching)
+# Copy and install Python dependencies
 COPY requirements.txt .
-
-# Upgrade pip/setuptools/wheel and install Python dependencies with verbose logging
-RUN echo "===== Starting pip install =====" && \
+RUN echo "===== Installing Python dependencies =====" && \
     python -m pip install --upgrade pip setuptools wheel && \
-    echo "===== Installing requirements =====" && \
-    cat requirements.txt && \
-    pip install -vvv -r requirements.txt
+    pip install -r requirements.txt
 
-# Copy remaining project files
+# Copy all project files
 COPY . .
 
 # Expose Flask port
-EXPOSE 5000
+EXPOSE 8080
 
-# Default command to start the Flask app
+# Start the Flask app
 CMD ["python", "app.py"]
