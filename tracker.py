@@ -6,9 +6,10 @@ from dateutil import parser
 class Tracker:
     def __init__(self, api_url):
         self.api_url = api_url
-        self.history = []      # Stores past change events
-        self.last_ips = set()  # Store last known IP set
+        self.history = []       # Stores past change events
+        self.last_ips = set()   # Store last known IP set
         self.last_poll_time = None
+        self.total_changes = 0  # ✅ cumulative IP changes since start
 
     def update_ips(self):
         """Fetch API data and track how many IPs changed since last call."""
@@ -29,8 +30,10 @@ class Tracker:
             changed_ips = current_ips.symmetric_difference(self.last_ips)
             change_count = len(changed_ips)
         else:
-            # First call, no comparison
             change_count = 0
+
+        # ✅ Add to total change counter
+        self.total_changes += change_count
 
         # Record entry
         entry = {
@@ -44,14 +47,14 @@ class Tracker:
         self.last_ips = current_ips
         self.last_poll_time = entry["timestamp"]
 
-        print(f"[Tracker] API fetched: {len(current_ips)} IPs, {change_count} changes since last call.")
+        print(f"[Tracker] API fetched: {len(current_ips)} IPs, {change_count} changes since last call. Total changes: {self.total_changes}")
 
     def get_history(self):
         """Return data for chart and table (with serializable timestamps)."""
         serialized = []
         for h in self.history:
             serialized.append({
-                "timestamp": h["timestamp"].isoformat(),  # convert datetime to string for JSON
+                "timestamp": h["timestamp"].isoformat(),
                 "change_count": h["change_count"],
                 "total_ips": h["total_ips"]
             })
@@ -63,13 +66,12 @@ class Tracker:
             return {
                 "last_poll": "Never",
                 "new_ips": 0,
-                "avg_per_day": 0
+                "avg_per_day": 0,
+                "total_changes": 0
             }
 
-        # Most recent change count
         new_ips = self.history[-1]["change_count"]
 
-        # Average per 24 hours
         twentyfour_hours_ago = datetime.utcnow() - timedelta(hours=24)
         recent_entries = [h for h in self.history if h["timestamp"] >= twentyfour_hours_ago]
         avg_day = (
@@ -80,5 +82,6 @@ class Tracker:
         return {
             "last_poll": self.last_poll_time.strftime("%Y-%m-%d %H:%M:%S"),
             "new_ips": new_ips,
-            "avg_per_day": round(avg_day, 2)
+            "avg_per_day": round(avg_day, 2),
+            "total_changes": self.total_changes  # ✅ added here
         }
